@@ -71,8 +71,8 @@ function tryLogIn(onSuccess, onError, waitMilliseconds, elementSelectorOnLoggedI
  * @param extension, saved file extensions
  */
 function download(urls, path, extension) {
-	for (var pdfIndex = 0; pdfIndex < urls.length; pdfIndex++) {
-		casper.download(urls[pdfIndex], path + '/' + pdfIndex + '.' + extension);
+	for (var pdfIndex = 1; pdfIndex < urls.length + 1; pdfIndex++) {
+		casper.download(urls[pdfIndex], path + '/' + pdfIndex + '.' + extension);		
 	}
 }
 
