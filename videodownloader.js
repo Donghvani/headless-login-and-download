@@ -44,7 +44,10 @@ casper.then(function () {
 
 casper.then(function () {
 	var targetFile = 'generatedcode.js';
-
+	
+	var fsImportString = "var fs = require('fs');";
+	fs.write(targetFile, fsImportString, 'a');
+	
 	var importString = 'var casper = require(\'casper\').create({\n' +
 		'\tpageSettings: {\n' +
 		'\t\twebSecurityEnabled: false,\n' +
@@ -62,12 +65,19 @@ casper.then(function () {
 	var startString = 'casper.start();\n';
 	fs.write(targetFile, startString, 'a');
 
+	var safeDownloadString = 'var safeDownload = function(downloadPath, savePath){\n' + 
+		'\tif (!fs.exists(savePath) || fs.size(savePath) == 0){\n' + 
+		'\t\tcasper.download(downloadPath, savePath); \n' +
+		'\t}\n' +
+		'}\n';
+	fs.write(targetFile, safeDownloadString, 'a');
+	
 	var arrayString = 'var toBeDownloaded =' + JSON.stringify(toBeDownloaded, null, '\t');
 	fs.write(targetFile, arrayString + ';\n', 'a');
 
 	for (var downloadIndex = 0; downloadIndex < toBeDownloaded.length; downloadIndex++) {
 		var codeString =
-			'casper.then(function() { this.echo("' + downloadIndex + '"); casper.download(toBeDownloaded[' + downloadIndex + '].file, toBeDownloaded[' + downloadIndex + '].saveFile); });\n';
+			'casper.then(function() { this.echo("' + downloadIndex + '"); safeDownload(toBeDownloaded[' + downloadIndex + '].file, toBeDownloaded[' + downloadIndex + '].saveFile); });\n';
 		fs.write(targetFile, codeString, 'a');
 		casper.echo(toBeDownloaded.length - downloadIndex);
 	}
