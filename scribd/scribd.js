@@ -1,22 +1,24 @@
-var casper = require('casper').create();
-//var vito = require('custom\\vito_prod.js');
-//var fs = require('fs');
-
-//var config = vito.getGlobalVariables();
+var casper = require("casper").create();
+var page = require('webpage').create();
 var userAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.116 Safari/537.36 ';
-//var fileExtension = 'pdf';
-//var pdfSavePath = 'saved';
-//var numberOfPdfBookPages = 672;
-//var numberOfPdfBookPages = 2;
 var loginWaitMilliseconds = 8000;
 var initialPageLoadMilliseconds = 3000;
+var pageNumber = 0;
+var rightArrow = 'a.right_arrow';
+var pageLoadedSelector = ".google_btn_label";
 
 casper.userAgent(userAgent);
 var startUrl = "https://www.scribd.com/login";
 var sampleBook = "https://www.scribd.com/read/380705041/Spymaster-A-Thriller";
 casper.start(startUrl);
 
-var pageLoadedSelector = ".google_btn_label";
+casper.page.paperSize = {
+  width: '11in',
+  height: '8.5in',
+  orientation: 'landscape',
+  border: '0.4in'
+};
+
 casper.waitForSelector(pageLoadedSelector,
 	function pass() {
 		this.echo("Title: " + casper.getTitle());
@@ -85,11 +87,7 @@ function loadBook(bookUrl, waitMilliseconds){
 	});
 }
 
-function get2Pages(){
-	/*var twoPages = casper.evaluate(function() {
-		return document.querySelector("#column_container").innerHTML;
-	});*/
-	
+function get2Pages(){	
 	casper.waitFor(function() {
 		return this.evaluate(function() {    
 			var images = document.getElementsByTagName('img');
@@ -100,29 +98,37 @@ function get2Pages(){
 			});
 		});
 	}, function then(){
-		casper.capture('screenshots/test.png');
-	}, null, 30000);
-	
-	/*
-	casper.waitFor(function() {
-		return this.evaluate(function() {
-			return window.imagesNotLoaded == 0;
+		casper.then(function(){
+			casper.wait(5000, function(){
+				casper.capture('screenshots/page1.png');
+			});
 		});
-	}, function then(){
-		casper.capture('screenshots/test.png');
-	}, null, 30000);*/
+		
+		casper.waitForSelector(
+			rightArrow,
+			function pass() {
+				screenShotNextPage();
+				screenShotNextPage();
+				screenShotNextPage();
+				screenShotNextPage();
+			},
+			function fail() {
+				console.log("Failed right button click");
+			},
+			8000
+		);
+		
+	}, null, 30000);
 }
 
-/*
-casper.evaluate(function() {
-    var images = document.getElementsByTagName('img');
-    images = Array.prototype.filter.call(images, function(i) { return !i.complete; });
-    window.imagesNotLoaded = images.length;
-	console.log("images to load", window.imagesNotLoaded);
-    Array.prototype.forEach.call(images, function(i) {
-        i.onload = function() { 			
-			window.imagesNotLoaded--; 
-			console.log("images to load:", window.imagesNotLoaded);
-		};
-    });
-});*/
+function screenShotNextPage(){
+	casper.click(rightArrow);				
+	casper.then(function(){
+		casper.wait(5000, function(){
+			pageNumber++;
+			//casper.capture('screenshots/'+ pageNumber +'.png');
+			//casper.capture('screenshots/'+ pageNumber +'.pdf');
+			page.render('screenshots/'+ pageNumber +'.png');
+		});
+	});	
+}
